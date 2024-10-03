@@ -200,12 +200,7 @@ class Routes {
   }
 
   @Router.get("/communities")
-  @Router.validate(z.object({ user: z.string().optional() }))
-  async getCommunities(user?: string) {
-    if (user) {
-      const userOid = (await Authing.getUserByUsername(user))._id;
-      return await Communitying.getCommunitiesByUser(userOid);
-    }
+  async getCommunities() {
     return await Communitying.getCommunities();
   }
 
@@ -236,6 +231,11 @@ class Routes {
   async leaveCommunity(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);
     return await Communitying.leave(new ObjectId(id), user);
+  }
+
+  @Router.post("/goals/community")
+  async createCommunityGoal(communityId: string, content: string) {
+    //blank for now
   }
 }
 
