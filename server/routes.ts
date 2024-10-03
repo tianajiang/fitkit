@@ -234,16 +234,102 @@ class Routes {
   }
 
   @Router.post("/goals/community")
-  async createCommunityGoal(communityId: string, description: String, unit: String, amount: Number) {
+  async createCommunityGoal(communityId: string, name: String, description: String, unit: String, amount: Number, deadline: Date) {
     //blank for now
   }
 
   @Router.post("/goals/user")
-  async createUserGoal(session: SessionDoc, description: String, unit: String, amount: Number) {
+  async createUserGoal(session: SessionDoc, name: String, description: String, unit: String, amount: Number, deadline: Date) {
     //blank for now
   }
 
-  //@Router.
+  @Router.patch("/goals/community/:id")
+  async updateCommunityGoal(id: string, name: String, description: String, unit: String, amount: Number, deadline: Date) {
+    //blank for now
+  }
+
+  @Router.patch("/goals/user/:id")
+  async updateUserGoal(id: string, name: String, description: String, unit: String, amount: Number, deadline: Date) {
+    //blank for now
+  }
+
+  @Router.delete("/goals/community/:id")
+  async deleteCommunityGoal(id: string) {
+    //blank for now
+  }
+
+  @Router.delete("/goals/user/:id")
+  async deleteUserGoal(id: string) {
+    //blank for now
+  }
+
+  @Router.patch("/goals/community/progress/:id")
+  async updateCommunityGoalProgress(id: string, progress: Number) {
+    //blank for now
+  }
+
+  @Router.patch("/goals/user/progress/:id")
+  async updateUserGoalProgress(id: string, progress: Number) {
+    //blank for now
+  }
+
+  @Router.get("/goals/community")
+  @Router.validate(z.object({ community: z.string().optional() }))
+  async getCommunityGoals() {
+    //blank for now
+  }
+
+  @Router.get("/goals/user")
+  @Router.validate(z.object({ author: z.string().optional() }))
+  async getUserGoals() {
+    //blank for now
+  }
+
+  // question: reading said we should not have maps to booleans (isCompleted) as states (instead keep a set of completed goals)
+  // how to implement this in the context of the goals? how to complete a goal? (how to add this exact goal object to another mongo collection?)
+  @Router.patch("/goals/community/complete/:id")
+  async completeCommunityGoal(id: string) {
+    //blank for now
+  }
+
+  @Router.patch("/goals/user/complete/:id")
+  async completeUserGoal(id: string) {
+    //blank for now
+  }
+
+  @Router.post("/collections")
+  async createUserCollection(session: SessionDoc, name: String, description: String) {
+    //blank for now
+  }
+
+  @Router.post("/collections/globalLibrary")
+  async createGlobalLibraryCollection(name: String, description: String) {
+    //blank for now
+  }
+
+  @Router.get("/collections")
+  @Router.validate(z.object({ author: z.string().optional() }))
+  async getCollections(session: SessionDoc) {
+    //blank for now
+  }
+
+  @Router.patch("/collections/addPost/:id")
+  async addPostToCollection(session:SessionDoc, id: string, postId: string) {
+    //blank for now
+  }
+
+  @Router.patch("/collections/removePost/:id")
+  async removePostFromCollection(session:SessionDoc, id: string, postId: string) {
+    //blank for now
+  }
+
+  @Router.delete("/collections/:id")
+  async deleteCollection(session: SessionDoc, id: string) {
+    //blank for now
+  }
+
+
+
 }
 
 /** The web app. */
