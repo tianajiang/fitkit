@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Communitying, Commenting, Friending, Posting, Sessioning } from "./app";
+import { Authing, Commenting, Communitying, Friending, Posting, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -234,22 +234,22 @@ class Routes {
   }
 
   @Router.post("/goals/community")
-  async createCommunityGoal(communityId: string, name: String, description: String, unit: String, amount: Number, deadline: Date) {
+  async createCommunityGoal(communityId: string, name: String, unit: String, amount: Number, deadline: Date) {
     //blank for now
   }
 
   @Router.post("/goals/user")
-  async createUserGoal(session: SessionDoc, name: String, description: String, unit: String, amount: Number, deadline: Date) {
+  async createUserGoal(session: SessionDoc, name: String, unit: String, amount: Number, deadline: Date) {
     //blank for now
   }
 
   @Router.patch("/goals/community/:id")
-  async updateCommunityGoal(id: string, name: String, description: String, unit: String, amount: Number, deadline: Date) {
+  async updateCommunityGoal(id: string, name: String, unit: String, amount: Number, deadline: Date) {
     //blank for now
   }
 
   @Router.patch("/goals/user/:id")
-  async updateUserGoal(id: string, name: String, description: String, unit: String, amount: Number, deadline: Date) {
+  async updateUserGoal(id: string, name: String, unit: String, amount: Number, deadline: Date) {
     //blank for now
   }
 
@@ -314,12 +314,12 @@ class Routes {
   }
 
   @Router.patch("/collections/addPost/:id")
-  async addPostToCollection(session:SessionDoc, id: string, postId: string) {
+  async addPostToCollection(session: SessionDoc, id: string, postId: string) {
     //blank for now
   }
 
   @Router.patch("/collections/removePost/:id")
-  async removePostFromCollection(session:SessionDoc, id: string, postId: string) {
+  async removePostFromCollection(session: SessionDoc, id: string, postId: string) {
     //blank for now
   }
 
@@ -327,9 +327,6 @@ class Routes {
   async deleteCollection(session: SessionDoc, id: string) {
     //blank for now
   }
-
-
-
 }
 
 /** The web app. */
