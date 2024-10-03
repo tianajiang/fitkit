@@ -42,7 +42,6 @@ after(async () => {
 describe("Create a user and log in", () => {
   it("should create a user and log in", async () => {
     const session = getEmptySession();
-
     const created = await app.createUser(session, "barish", "1234");
     assert(created.user);
     await assert.rejects(app.logIn(session, "barish", "123"));

@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Communitying, Friending, Posting, Sessioning } from "./app";
+import { Authing, Communitying, Friending, Posting, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -86,7 +86,7 @@ class Routes {
   @Router.post("/posts")
   async createPost(session: SessionDoc, content: string, communityId: string, options?: PostOptions) {
     const user = Sessioning.getUser(session);
-    Communitying.assertUserIsMember(new ObjectId(communityId), user);
+    await Communitying.assertUserIsMember(new ObjectId(communityId), user);
     const created = await Posting.create(user, content, options);
     if (created.post) {
       await Communitying.addPost(new ObjectId(communityId), created.post._id);
@@ -234,9 +234,16 @@ class Routes {
   }
 
   @Router.post("/goals/community")
-  async createCommunityGoal(communityId: string, content: string) {
+  async createCommunityGoal(communityId: string, description: String, unit: String, amount: Number) {
     //blank for now
   }
+
+  @Router.post("/goals/user")
+  async createUserGoal(session: SessionDoc, description: String, unit: String, amount: Number) {
+    //blank for now
+  }
+
+  //@Router.
 }
 
 /** The web app. */

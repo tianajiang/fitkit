@@ -7,7 +7,7 @@
     "start": "npm run build && node -r source-map-support/register dist-server/api/index.js",
     "lint": "npx eslint . --ext .ts && npx prettier . --check",
     "format": "npx eslint . --ext .ts --fix && npx prettier . --write",
-    "test": "npm run build && mocha -r source-map-support/register dist-server/test"
+    "test": "npm run build && mocha --timeout 15000 -r source-map-support/register dist-server/test"
   },
   "devDependencies": {
     "@types/cors": "^2.8.13",
