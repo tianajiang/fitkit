@@ -83,6 +83,66 @@ const operations: Operation[] = [
   //
   // ...
   //
+  {
+    name: "Get Comments (empty for all)",
+    endpoint: "/api/comments",
+    method: "GET",
+    fields: { author: "input", target: "input" },
+  },
+  {
+    name: "Create Comment",
+    endpoint: "/api/comments",
+    method: "POST",
+    fields: { content: "input", target: "input" },
+  },
+  {
+    name: "Update Comment",
+    endpoint: "/api/comments/:id",
+    method: "PATCH",
+    fields: { id: "input", content: "input" },
+  },
+  {
+    name: "Delete Comment",
+    endpoint: "/api/comments/:id",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+  {
+    name: "Get Communities",
+    endpoint: "/api/communities",
+    method: "GET",
+    fields: {},
+  },
+  {
+    name: "Create Community",
+    endpoint: "/api/communities",
+    method: "POST",
+    fields: { name: "input", description: "input" },
+  },
+  {
+    name: "Get Community by Name",
+    endpoint: "/api/communities/:name",
+    method: "GET",
+    fields: { name: "input" },
+  },
+  {
+    name: "Get Communities by User",
+    endpoint: "/api/communities/user/:id",
+    method: "GET",
+    fields: { id: "input" },
+  },
+  {
+    name: "Join Community",
+    endpoint: "/api/communities/join/:id",
+    method: "PUT",
+    fields: { id: "input" },
+  },
+  {
+    name: "Leave Community",
+    endpoint: "/api/communities/leave/:id",
+    method: "PUT",
+    fields: { id: "input" },
+  },
 ];
 
 /*

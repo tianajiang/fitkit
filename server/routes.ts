@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Friending, Posting, Sessioning } from "./app";
+import { Authing, Commenting, Communitying, Friending, Posting, Sessioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -84,9 +84,13 @@ class Routes {
   }
 
   @Router.post("/posts")
-  async createPost(session: SessionDoc, content: string, options?: PostOptions) {
+  async createPost(session: SessionDoc, content: string, communityId: string, options?: PostOptions) {
     const user = Sessioning.getUser(session);
+    Communitying.assertUserIsMember(new ObjectId(communityId), user);
     const created = await Posting.create(user, content, options);
+    if (created.post) {
+      await Communitying.addPost(new ObjectId(communityId), created.post._id);
+    }
     return { msg: created.msg, post: await Responses.post(created.post) };
   }
 
@@ -103,6 +107,11 @@ class Routes {
     const user = Sessioning.getUser(session);
     const oid = new ObjectId(id);
     await Posting.assertAuthorIsUser(oid, user);
+    //remove post from its community
+    const community = await Communitying.getCommunityByPost(oid);
+    if (community) {
+      await Communitying.removePost(community._id, oid);
+    }
     return Posting.delete(oid);
   }
 
@@ -151,6 +160,82 @@ class Routes {
     const user = Sessioning.getUser(session);
     const fromOid = (await Authing.getUserByUsername(from))._id;
     return await Friending.rejectRequest(fromOid, user);
+  }
+
+  @Router.get("/comments")
+  @Router.validate(z.object({ target: z.string().optional() }))
+  async getComments(target?: string) {
+    let comments;
+    if (target) {
+      const id = new ObjectId(target);
+      comments = await Commenting.getByTarget(id);
+    } else {
+      comments = await Commenting.getComments();
+    }
+    return Responses.comments(comments);
+  }
+
+  @Router.post("/comments")
+  async createComment(session: SessionDoc, content: string, target: string) {
+    const user = Sessioning.getUser(session);
+    await Posting.assertPostExists(new ObjectId(target));
+    const created = await Commenting.create(user, content, new ObjectId(target));
+    return { msg: created.msg, comment: await Responses.comment(created.comment) };
+  }
+
+  @Router.patch("/comments/:id")
+  async updateComment(session: SessionDoc, id: string, content?: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await Commenting.assertAuthorIsUser(oid, user);
+    return await Commenting.update(oid, content);
+  }
+
+  @Router.delete("/comments/:id")
+  async deleteComment(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const oid = new ObjectId(id);
+    await Commenting.assertAuthorIsUser(oid, user);
+    return Commenting.delete(oid);
+  }
+
+  @Router.get("/communities")
+  @Router.validate(z.object({ user: z.string().optional() }))
+  async getCommunities(user?: string) {
+    if (user) {
+      const userOid = (await Authing.getUserByUsername(user))._id;
+      return await Communitying.getCommunitiesByUser(userOid);
+    }
+    return await Communitying.getCommunities();
+  }
+
+  @Router.post("/communities")
+  async createCommunity(session: SessionDoc, name: string, description: string) {
+    const user = Sessioning.getUser(session);
+    return await Communitying.create(name, description, user);
+  }
+
+  @Router.get("/communities/:name")
+  @Router.validate(z.object({ name: z.string().min(1) }))
+  async getCommunityByName(name: string) {
+    return await Communitying.getByName(name);
+  }
+
+  @Router.get("/communities/user/:id")
+  async getCommunitiesByUser(id: string) {
+    return await Communitying.getCommunitiesByUser(new ObjectId(id));
+  }
+
+  @Router.put("/communities/join/:id")
+  async joinCommunity(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    return await Communitying.join(new ObjectId(id), user);
+  }
+
+  @Router.put("/communities/leave/:id")
+  async leaveCommunity(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    return await Communitying.leave(new ObjectId(id), user);
   }
 }
 
