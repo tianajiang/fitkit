@@ -80,9 +80,6 @@ const operations: Operation[] = [
     method: "DELETE",
     fields: { id: "input" },
   },
-  //
-  // ...
-  //
   {
     name: "Get Comments (empty for all)",
     endpoint: "/api/comments",
