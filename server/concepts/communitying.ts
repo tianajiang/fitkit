@@ -71,11 +71,6 @@ export default class CommunityingConcept {
     if (!community) {
       throw new NotFoundError(`Community ${_id} does not exist!`);
     }
-    for (const member of community.members) {
-      if (member.toString() === user.toString()) {
-        throw new NotAllowedError(`User ${user} is already a member of community ${_id}!`);
-      }
-    }
     community.members.push(user);
     await this.communities.partialUpdateOne({ _id }, community);
     return { msg: "User successfully joined community!" };
@@ -85,16 +80,6 @@ export default class CommunityingConcept {
     const community = await this.communities.readOne({ _id });
     if (!community) {
       throw new NotFoundError(`Community ${_id} does not exist!`);
-    }
-    let isMember = false;
-    for (const member of community.members) {
-      if (member.toString() === user.toString()) {
-        isMember = true;
-        break;
-      }
-    }
-    if (!isMember) {
-      throw new NotAllowedError(`User ${user} is not a member of community ${_id}!`);
     }
     community.members = community.members.filter((member) => member.toString() !== user.toString());
     await this.communities.partialUpdateOne({ _id }, community);
@@ -115,6 +100,18 @@ export default class CommunityingConcept {
     }
     if (!isMember) {
       throw new NotAllowedError(`User ${user} is not a member of community ${_id}!`);
+    }
+  }
+
+  async assertUserIsNotMember(_id: ObjectId, user: ObjectId) {
+    const community = await this.communities.readOne({ _id });
+    if (!community) {
+      throw new NotFoundError(`Community ${_id} does not exist!`);
+    }
+    for (const member of community.members) {
+      if (member.toString() === user.toString()) {
+        throw new NotAllowedError(`User ${user} is already a member of community ${_id}!`);
+      }
     }
   }
 }

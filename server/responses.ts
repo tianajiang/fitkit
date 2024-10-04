@@ -3,6 +3,7 @@ import { CommentDoc } from "./concepts/commenting";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { Router } from "./framework/router";
+import { CommunityDoc } from "./concepts/communitying";
 
 /**
  * This class does useful conversions for the frontend.
@@ -56,6 +57,21 @@ export default class Responses {
     const to = requests.map((request) => request.to);
     const usernames = await Authing.idsToUsernames(from.concat(to));
     return requests.map((request, i) => ({ ...request, from: usernames[i], to: usernames[i + requests.length] }));
+  }
+
+  // convert CommunityDoc into more readable format for the frontend
+  static async community(community: CommunityDoc | null) {
+    if (!community) {
+      return community;
+    }
+    const members = await Authing.idsToUsernames(community.members);
+    return { ...community, members };
+  }
+
+  // convert an array of CommunityDoc into more readable format for the frontend
+  static async communities(communities: CommunityDoc[]) {
+    const members = await Promise.all(communities.map((community) => Authing.idsToUsernames(community.members)));
+    return communities.map((community, i) => ({ ...community, members: members[i] }));
   }
 }
 

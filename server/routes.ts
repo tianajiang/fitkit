@@ -86,6 +86,7 @@ class Routes {
   @Router.post("/posts")
   async createPost(session: SessionDoc, content: string, communityId: string, options?: PostOptions) {
     const user = Sessioning.getUser(session);
+    console.log(communityId);
     await Communitying.assertUserIsMember(new ObjectId(communityId), user);
     const created = await Posting.create(user, content, options);
     if (created.post) {
@@ -201,35 +202,40 @@ class Routes {
 
   @Router.get("/communities")
   async getCommunities() {
-    return await Communitying.getCommunities();
+    return await Responses.communities(await Communitying.getCommunities());
   }
 
   @Router.post("/communities")
   async createCommunity(session: SessionDoc, name: string, description: string) {
     const user = Sessioning.getUser(session);
-    return await Communitying.create(name, description, user);
+    const created = await Communitying.create(name, description, user);
+    return { msg: created.msg, community: await Responses.community(created.community) };
   }
 
   @Router.get("/communities/:name")
   @Router.validate(z.object({ name: z.string().min(1) }))
   async getCommunityByName(name: string) {
-    return await Communitying.getByName(name);
+    const communities = await Communitying.getByName(name);
+    return Responses.communities(communities);
   }
 
   @Router.get("/communities/user/:id")
   async getCommunitiesByUser(id: string) {
-    return await Communitying.getCommunitiesByUser(new ObjectId(id));
+    const communities = await Communitying.getCommunitiesByUser(new ObjectId(id));
+    return Responses.communities(communities);
   }
 
   @Router.put("/communities/join/:id")
   async joinCommunity(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);
+    Communitying.assertUserIsNotMember(new ObjectId(id), user);
     return await Communitying.join(new ObjectId(id), user);
   }
 
   @Router.put("/communities/leave/:id")
   async leaveCommunity(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);
+    Communitying.assertUserIsMember(new ObjectId(id), user);
     return await Communitying.leave(new ObjectId(id), user);
   }
 
