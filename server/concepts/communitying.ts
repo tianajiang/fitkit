@@ -61,7 +61,7 @@ export default class CommunityingConcept {
     if (!community) {
       throw new NotFoundError(`Community ${_id} does not exist!`);
     }
-    community.posts = community.posts.filter((p) => p !== post);
+    community.posts = community.posts.filter((p) => p.toString() !== post.toString());
     await this.communities.partialUpdateOne({ _id }, community);
     return { msg: "Post successfully removed from community!" };
   }

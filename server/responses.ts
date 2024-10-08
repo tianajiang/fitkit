@@ -1,9 +1,10 @@
 import { Authing } from "./app";
-import { CommentDoc } from "./concepts/commenting";
+import { CommentDoc, CommentAuthorNotMatchError } from "./concepts/commenting";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { Router } from "./framework/router";
 import { CommunityDoc } from "./concepts/communitying";
+import { UserNotCollectionOwnerError, CollectionDoc } from "./concepts/collectioning";
 
 /**
  * This class does useful conversions for the frontend.
@@ -73,6 +74,24 @@ export default class Responses {
     const members = await Promise.all(communities.map((community) => Authing.idsToUsernames(community.members)));
     return communities.map((community, i) => ({ ...community, members: members[i] }));
   }
+
+  // convert CollectionDoc into more readable format for the frontend
+  static async collection(collection: CollectionDoc | null) {
+    if (!collection) {
+      return collection;
+    }
+    if (collection.owner) {
+      const owner = await Authing.getUserById(collection.owner);
+      return { ...collection, owner: owner.username };
+    }
+    return collection;
+  }
+
+  // convert an array of CollectionDoc into more readable format for the frontend
+  static async collections(collections: CollectionDoc[]) {
+    const owners = await Promise.all(collections.map((collection) => collection.owner ? Authing.getUserById(collection.owner) : null));
+    return collections.map((collection, i) => collection.owner ? { ...collection, owner: owners[i]?.username } : collection);
+  }
 }
 
 Router.registerError(PostAuthorNotMatchError, async (e) => {
@@ -98,4 +117,14 @@ Router.registerError(FriendRequestNotFoundError, async (e) => {
 Router.registerError(AlreadyFriendsError, async (e) => {
   const [user1, user2] = await Promise.all([Authing.getUserById(e.user1), Authing.getUserById(e.user2)]);
   return e.formatWith(user1.username, user2.username);
+});
+
+Router.registerError(CommentAuthorNotMatchError, async (e) => {
+  const username = (await Authing.getUserById(e.author)).username;
+  return e.formatWith(username, e._id);
+});
+
+Router.registerError(UserNotCollectionOwnerError, async (e) => {
+  const username = (await Authing.getUserById(e.author)).username;
+  return e.formatWith(username, e._id);
 });

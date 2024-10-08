@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Communitying, Friending, Posting, Sessioning } from "./app";
+import { Authing, Commenting, Communitying, Friending, Posting, Sessioning, Collectioning } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -201,7 +201,11 @@ class Routes {
   }
 
   @Router.get("/communities")
-  async getCommunities() {
+  @Router.validate(z.object({ name: z.string().optional() }))
+  async getCommunities(name?: string) {
+    if (name) {
+      return await Responses.communities(await Communitying.getByName(name));
+    }
     return await Responses.communities(await Communitying.getCommunities());
   }
 
@@ -212,16 +216,9 @@ class Routes {
     return { msg: created.msg, community: await Responses.community(created.community) };
   }
 
-  @Router.get("/communities/:name")
-  @Router.validate(z.object({ name: z.string().min(1) }))
-  async getCommunityByName(name: string) {
-    const communities = await Communitying.getByName(name);
-    return Responses.communities(communities);
-  }
-
   @Router.get("/communities/user/:id")
-  async getCommunitiesByUser(id: string) {
-    const communities = await Communitying.getCommunitiesByUser(new ObjectId(id));
+  async getCommunitiesByUser(userId: string) {
+    const communities = await Communitying.getCommunitiesByUser(new ObjectId(userId));
     return Responses.communities(communities);
   }
 
@@ -240,22 +237,22 @@ class Routes {
   }
 
   @Router.post("/goals/community")
-  async createCommunityGoal(communityId: string, name: String, unit: String, amount: Number, deadline: Date) {
+  async createCommunityGoal(communityId: string, name: string, unit: string, amount: Number, deadline: Date) {
     //blank for now
   }
 
   @Router.post("/goals/user")
-  async createUserGoal(session: SessionDoc, name: String, unit: String, amount: Number, deadline: Date) {
+  async createUserGoal(session: SessionDoc, name: string, unit: string, amount: Number, deadline: Date) {
     //blank for now
   }
 
   @Router.patch("/goals/community/:id")
-  async updateCommunityGoal(id: string, name: String, unit: String, amount: Number, deadline: Date) {
+  async updateCommunityGoal(id: string, name: string, unit: string, amount: Number, deadline: Date) {
     //blank for now
   }
 
   @Router.patch("/goals/user/:id")
-  async updateUserGoal(id: string, name: String, unit: String, amount: Number, deadline: Date) {
+  async updateUserGoal(id: string, name: string, unit: string, amount: Number, deadline: Date) {
     //blank for now
   }
 
@@ -304,34 +301,53 @@ class Routes {
   }
 
   @Router.post("/collections")
-  async createUserCollection(session: SessionDoc, name: String, description: String) {
-    //blank for now
+  async createUserCollection(session: SessionDoc, name: string) {
+    const user = Sessioning.getUser(session);
+    return await Collectioning.create(name, user);
   }
 
   @Router.post("/collections/globalLibrary")
-  async createGlobalLibraryCollection(name: String, description: String) {
-    //blank for now
+  async createGlobalLibraryCollection() {
+    return await Collectioning.create("Global Exercise Library", null);
   }
 
   @Router.get("/collections")
-  @Router.validate(z.object({ author: z.string().optional() }))
-  async getCollections(session: SessionDoc) {
-    //blank for now
+  @Router.validate(z.object({ owner: z.string().optional() }))
+  async getCollections(owner?: string) {
+    let collections;
+    if (owner) {
+      collections = await Collectioning.getCollectionsByUser(new ObjectId(owner));
+    } else {
+      collections = await Collectioning.getCollections();
+    }
+    return collections;
+  }
+
+  @Router.get("/collections/user/:id/post/:postId")
+  async getCollectionsByPostAndUser(owner: string, postId: string) {
+    const collections = await Collectioning.getCollectionsByPostAndUser(new ObjectId(owner), new ObjectId(postId));
+    return collections;
   }
 
   @Router.patch("/collections/addPost/:id")
   async addPostToCollection(session: SessionDoc, id: string, postId: string) {
-    //blank for now
+    const user = Sessioning.getUser(session);
+    await Collectioning.assertUserCanEditCollection(new ObjectId(id), user);
+    return await Collectioning.addPost(new ObjectId(id), new ObjectId(postId));
   }
 
   @Router.patch("/collections/removePost/:id")
   async removePostFromCollection(session: SessionDoc, id: string, postId: string) {
-    //blank for now
+    const user = Sessioning.getUser(session);
+    await Collectioning.assertUserCanEditCollection(new ObjectId(id), user);
+    return await Collectioning.removePost(new ObjectId(id), new ObjectId(postId));
   }
 
   @Router.delete("/collections/:id")
   async deleteCollection(session: SessionDoc, id: string) {
-    //blank for now
+    const user = Sessioning.getUser(session);
+    await Collectioning.assertUserCanDeleteCollection(new ObjectId(id), user);
+    return await Collectioning.deleteCollection(new ObjectId(id));
   }
 }
 

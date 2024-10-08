@@ -84,7 +84,7 @@ const operations: Operation[] = [
     name: "Get Comments (empty for all)",
     endpoint: "/api/comments",
     method: "GET",
-    fields: { author: "input", target: "input" },
+    fields: { target: "input" },
   },
   {
     name: "Create Comment",
@@ -105,10 +105,10 @@ const operations: Operation[] = [
     fields: { id: "input" },
   },
   {
-    name: "Get Communities",
+    name: "Get Communities (empty for all)",
     endpoint: "/api/communities",
     method: "GET",
-    fields: {},
+    fields: {name: "input"},
   },
   {
     name: "Create Community",
@@ -117,16 +117,10 @@ const operations: Operation[] = [
     fields: { name: "input", description: "input" },
   },
   {
-    name: "Get Community by Name",
-    endpoint: "/api/communities/:name",
-    method: "GET",
-    fields: { name: "input" },
-  },
-  {
     name: "Get Communities by User",
     endpoint: "/api/communities/user/:id",
     method: "GET",
-    fields: { id: "input" },
+    fields: { userId: "input" },
   },
   {
     name: "Join Community",
@@ -138,6 +132,42 @@ const operations: Operation[] = [
     name: "Leave Community",
     endpoint: "/api/communities/leave/:id",
     method: "PUT",
+    fields: { id: "input" },
+  },
+  {
+    name: "Create Collection",
+    endpoint: "/api/collections",
+    method: "POST",
+    fields: { name: "input" },
+  },
+  {
+    name: "Get Collections (empty for all)",
+    endpoint: "/api/collections",
+    method: "GET",
+    fields: { owner: "input" },
+  },
+  {
+    name: "Get Collection by Post and User",
+    endpoint: "/api/collections/user/:id/post/:postId",
+    method: "GET",
+    fields: { owner: "input", postId: "input" },
+  },
+  {
+    name: "Add Post to Collection",
+    endpoint: "/api/collections/addPost/:id",
+    method: "PATCH",
+    fields: { id: "input", postId: "input" },
+  },
+  {
+    name: "Remove Post from Collection",
+    endpoint: "/api/collections/removePost/:id",
+    method: "PATCH",
+    fields: { id: "input", postId: "input" },
+  },
+  {
+    name: "Delete Collection",
+    endpoint: "/api/collections/:id",
+    method: "DELETE",
     fields: { id: "input" },
   },
 ];
