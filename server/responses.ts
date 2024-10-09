@@ -1,10 +1,11 @@
-import { Authing } from "./app";
+import { Authing, Communitying } from "./app";
 import { CommentDoc, CommentAuthorNotMatchError } from "./concepts/commenting";
 import { AlreadyFriendsError, FriendNotFoundError, FriendRequestAlreadyExistsError, FriendRequestDoc, FriendRequestNotFoundError } from "./concepts/friending";
 import { PostAuthorNotMatchError, PostDoc } from "./concepts/posting";
 import { Router } from "./framework/router";
 import { CommunityDoc } from "./concepts/communitying";
 import { UserNotCollectionOwnerError, CollectionDoc } from "./concepts/collectioning";
+import { UserNotGoalAuthorError, GoalDoc } from "./concepts/goaling";
 
 /**
  * This class does useful conversions for the frontend.
@@ -92,6 +93,39 @@ export default class Responses {
     const owners = await Promise.all(collections.map((collection) => collection.owner ? Authing.getUserById(collection.owner) : null));
     return collections.map((collection, i) => collection.owner ? { ...collection, owner: owners[i]?.username } : collection);
   }
+
+  // convert GoalDoc into more readable format for the frontend
+  static async communityGoal(goal: GoalDoc | null) {
+    if (!goal) {
+      return goal;
+    }
+    const author = await Communitying.getCommunity(goal.author);
+    if (!author) {
+      return goal;
+    }
+    return { ...goal, author: author.name };
+  }
+
+  // convert an array of GoalDoc into more readable format for the frontend
+  static async communityGoals(goals: GoalDoc[]) {
+    const authors = await Promise.all(goals.map((goal) => Communitying.getCommunity(goal.author)));
+    return goals.map((goal, i) => ({ ...goal, author: authors[i]?.name }));
+  }
+
+  // convert GoalDoc into more readable format for the frontend
+  static async userGoal(goal: GoalDoc | null) {
+    if (!goal) {
+      return goal;
+    }
+    const author = await Authing.getUserById(goal.author);
+    return { ...goal, author: author.username };
+  }
+
+  // convert an array of GoalDoc into more readable format for the frontend
+  static async userGoals(goals: GoalDoc[]) {
+    const authors = await Authing.idsToUsernames(goals.map((goal) => goal.author));
+    return goals.map((goal, i) => ({ ...goal, author: authors[i] }));
+  }
 }
 
 Router.registerError(PostAuthorNotMatchError, async (e) => {
@@ -125,6 +159,12 @@ Router.registerError(CommentAuthorNotMatchError, async (e) => {
 });
 
 Router.registerError(UserNotCollectionOwnerError, async (e) => {
+  const username = (await Authing.getUserById(e.author)).username;
+  return e.formatWith(username, e._id);
+});
+
+Router.registerError(UserNotGoalAuthorError, async (e) => {
+  // if owner is an author, input author name. if owner is a community, 
   const username = (await Authing.getUserById(e.author)).username;
   return e.formatWith(username, e._id);
 });

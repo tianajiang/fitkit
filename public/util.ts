@@ -66,7 +66,7 @@ const operations: Operation[] = [
     name: "Create Post",
     endpoint: "/api/posts",
     method: "POST",
-    fields: { content: "input", communityId: "input"},
+    fields: { content: "input", communityId: "input" },
   },
   {
     name: "Update Post",
@@ -108,7 +108,7 @@ const operations: Operation[] = [
     name: "Get Communities (empty for all)",
     endpoint: "/api/communities",
     method: "GET",
-    fields: {name: "input"},
+    fields: { name: "input" },
   },
   {
     name: "Create Community",
@@ -169,6 +169,77 @@ const operations: Operation[] = [
     endpoint: "/api/collections/:id",
     method: "DELETE",
     fields: { id: "input" },
+  },
+  {
+    name: "Get Incomplete Community Goals (empty for all)",
+    endpoint: "/api/goals/incomplete/community",
+    method: "GET",
+    fields: { community: "input" },
+  },
+  { name: "Get Complete Community Goals (empty for all)", 
+    endpoint: "/api/goals/complete/community", 
+    method: "GET", 
+    fields: { community: "input" } 
+  },
+  {
+    name: "Get Incomplete User Goals (empty for all)",
+    endpoint: "/api/goals/incomplete/user",
+    method: "GET",
+    fields: { author: "input" },
+  },
+  {
+    name: "Get Complete User Goals (empty for all)",
+    endpoint: "/api/goals/complete/user",
+    method: "GET",
+    fields: { author: "input" },
+  },
+  {
+    name: "Create Community Goal",
+    endpoint: "/api/goals/community",
+    method: "POST",
+    fields: { community: "input", name: "input", unit: "input", amount: "input", deadline: "input" },
+  },
+  {
+    name: "Create User Goal",
+    endpoint: "/api/goals/user",
+    method: "POST",
+    fields: { name: "input", unit: "input", amount: "input", deadline: "input" },
+  },
+  {
+    name: "Update Community Goal",
+    endpoint: "/api/goals/community/:id",
+    method: "PATCH",
+    fields: { id: "input", name: "input", unit: "input", amount: "input", deadline: "input" },
+  },
+  {
+    name: "Update User Goal",
+    endpoint: "/api/goals/user/:id",
+    method: "PATCH",
+    fields: { id: "input", name: "input", unit: "input", amount: "input", deadline: "input" },
+  },
+  {
+    name: "Delete Community Goal",
+    endpoint: "/api/goals/community/:id",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+  {
+    name: "Delete User Goal",
+    endpoint: "/api/goals/user/:id",
+    method: "DELETE",
+    fields: { id: "input" },
+  },
+  {
+    name: "Add Community Goal Progress",
+    endpoint: "/api/goals/community/:id/progress",
+    method: "PATCH",
+    fields: { id: "input", progress: "input" },
+  },
+  {
+    name: "Add User Goal Progress",
+    endpoint: "/api/goals/user/:id/progress",
+    method: "PATCH",
+    fields: { id: "input", progress: "input" },
   },
 ];
 

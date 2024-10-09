@@ -37,6 +37,14 @@ export default class CommunityingConcept {
     return await this.communities.readMany({ name });
   }
 
+  async getCommunity(_id: ObjectId) {
+    const community = await this.communities.readOne({ _id });
+    if (!community) {
+      throw new NotFoundError(`Community ${_id} does not exist!`);
+    }
+    return community;
+  }
+
   // return all the communities where member contains user
   async getCommunitiesByUser(user: ObjectId) {
     return await this.communities.readMany({ members: user });

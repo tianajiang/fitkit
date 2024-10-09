@@ -2,7 +2,7 @@ import { ObjectId } from "mongodb";
 
 import { Router, getExpressRouter } from "./framework/router";
 
-import { Authing, Commenting, Communitying, Friending, Posting, Sessioning, Collectioning } from "./app";
+import { Authing, Commenting, Communitying, Friending, Posting, Sessioning, Collectioning, UserGoaling, CommunityGoaling } from "./app";
 import { PostOptions } from "./concepts/posting";
 import { SessionDoc } from "./concepts/sessioning";
 import Responses from "./responses";
@@ -86,7 +86,6 @@ class Routes {
   @Router.post("/posts")
   async createPost(session: SessionDoc, content: string, communityId: string, options?: PostOptions) {
     const user = Sessioning.getUser(session);
-    console.log(communityId);
     await Communitying.assertUserIsMember(new ObjectId(communityId), user);
     const created = await Posting.create(user, content, options);
     if (created.post) {
@@ -237,67 +236,122 @@ class Routes {
   }
 
   @Router.post("/goals/community")
-  async createCommunityGoal(communityId: string, name: string, unit: string, amount: Number, deadline: Date) {
-    //blank for now
+  async createCommunityGoal(session: SessionDoc, community: string, name: string, unit: string, amount: string, deadline: string) {
+    const user = Sessioning.getUser(session);
+    const amt = parseInt(amount);
+    if (Number.isNaN(amt)) {
+      throw new Error("Amount must be a number!");
+    }
+    const ddln = new Date(deadline);
+    await Communitying.assertUserIsMember(new ObjectId(community), user);
+    return await CommunityGoaling.create(new ObjectId(community), name, unit, amt, ddln);
   }
 
   @Router.post("/goals/user")
-  async createUserGoal(session: SessionDoc, name: string, unit: string, amount: Number, deadline: Date) {
-    //blank for now
+  async createUserGoal(session: SessionDoc, name: string, unit: string, amount: string, deadline: string) {
+    const user = Sessioning.getUser(session);
+    const amt = parseInt(amount);
+    if (Number.isNaN(amt)) {
+      throw new Error("Amount must be a number!");
+    }
+    const ddln = new Date(deadline);
+    return await UserGoaling.create(user, name, unit, amt, ddln);
   }
 
   @Router.patch("/goals/community/:id")
-  async updateCommunityGoal(id: string, name: string, unit: string, amount: Number, deadline: Date) {
-    //blank for now
+  async updateCommunityGoal(session: SessionDoc, id: string, name?: string, unit?: string, amount?: string, deadline?: string) {
+    const user = Sessioning.getUser(session);
+    const goal = await CommunityGoaling.getGoal(new ObjectId(id));
+    const community = await Communitying.getCommunity(goal.author);
+    await Communitying.assertUserIsMember(community._id, user);
+    const amt = amount ? parseInt(amount) : undefined;
+    const ddln = deadline ? new Date(deadline) : undefined;
+    return await CommunityGoaling.update(new ObjectId(id), name, unit, amt, ddln);
   }
 
   @Router.patch("/goals/user/:id")
-  async updateUserGoal(id: string, name: string, unit: string, amount: Number, deadline: Date) {
-    //blank for now
+  async updateUserGoal(session: SessionDoc, id: string, name?: string, unit?: string, amount?: string, deadline?: string) {
+    const user = Sessioning.getUser(session);
+    await UserGoaling.assertUserIsGoalAuthor(new ObjectId(id), user);
+    const amt = amount ? parseInt(amount) : undefined;
+    const ddln = deadline ? new Date(deadline) : undefined;
+    return await UserGoaling.update(new ObjectId(id), name, unit, amt, ddln);
   }
 
   @Router.delete("/goals/community/:id")
-  async deleteCommunityGoal(id: string) {
-    //blank for now
+  async deleteCommunityGoal(session: SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    const goal = await CommunityGoaling.getGoal(new ObjectId(id));
+    const community = await Communitying.getCommunity(goal.author);
+    await Communitying.assertUserIsMember(community._id, user);
+    return await CommunityGoaling.deleteIncompleteGoal(new ObjectId(id));
   }
 
   @Router.delete("/goals/user/:id")
-  async deleteUserGoal(id: string) {
-    //blank for now
+  async deleteUserGoal(session:SessionDoc, id: string) {
+    const user = Sessioning.getUser(session);
+    await UserGoaling.assertUserIsGoalAuthor(new ObjectId(id), user);
+    return await UserGoaling.deleteIncompleteGoal(new ObjectId(id));
   }
 
-  @Router.patch("/goals/community/progress/:id")
-  async updateCommunityGoalProgress(id: string, progress: Number) {
-    //blank for now
+  @Router.patch("/goals/community/:id/progress")
+  async addCommunityGoalProgress(session: SessionDoc, id: string, progress: string) {
+    const user = Sessioning.getUser(session);
+    const goal = await CommunityGoaling.getGoal(new ObjectId(id));
+    const community = await Communitying.getCommunity(goal.author);
+    await Communitying.assertUserIsMember(community._id, user);
+    const prog = parseInt(progress);
+    if (Number.isNaN(prog)) {
+      throw new Error("Amount must be a number!");
+    }
+    return await CommunityGoaling.addProgress(new ObjectId(id), prog);
   }
 
-  @Router.patch("/goals/user/progress/:id")
-  async updateUserGoalProgress(id: string, progress: Number) {
-    //blank for now
+  @Router.patch("/goals/user/:id/progress/")
+  async addUserGoalProgress(session: SessionDoc, id: string, progress: string) {
+    const user = Sessioning.getUser(session);
+    await UserGoaling.assertUserIsGoalAuthor(new ObjectId(id), user);
+    const prog = parseInt(progress);
+    if (Number.isNaN(prog)) {
+      throw new Error("Amount must be a number!");
+    }
+    return await UserGoaling.addProgress(new ObjectId(id), prog);
   }
 
-  @Router.get("/goals/community")
+  @Router.get("/goals/complete/community")
   @Router.validate(z.object({ community: z.string().optional() }))
-  async getCommunityGoals() {
-    //blank for now
+  async getCompleteCommunityGoals(community?: string) {
+    if (community) {
+      return await CommunityGoaling.getCompleteByAuthor(new ObjectId(community));
+    }
+    return await CommunityGoaling.getCompleteGoals();
   }
 
-  @Router.get("/goals/user")
+  @Router.get("/goals/incomplete/community")
+  @Router.validate(z.object({ community: z.string().optional() }))
+  async getIncompleteCommunityGoals(community?: string) {
+    if (community) {
+      return await CommunityGoaling.getIncompleteByAuthor(new ObjectId(community));
+    }
+    return await CommunityGoaling.getIncompleteGoals();
+  }
+
+  @Router.get("/goals/complete/user")
   @Router.validate(z.object({ author: z.string().optional() }))
-  async getUserGoals() {
-    //blank for now
+  async getCompleteUserGoals(author?: string) {
+    if (author) {
+      return await UserGoaling.getCompleteByAuthor(new ObjectId(author));
+    }
+    return await UserGoaling.getCompleteGoals();
   }
 
-  // question: reading said we should not have maps to booleans (isCompleted) as states (instead keep a set of completed goals)
-  // how to implement this in the context of the goals? how to complete a goal? (how to add this exact goal object to another mongo collection?)
-  @Router.patch("/goals/community/complete/:id")
-  async completeCommunityGoal(id: string) {
-    //blank for now
-  }
-
-  @Router.patch("/goals/user/complete/:id")
-  async completeUserGoal(id: string) {
-    //blank for now
+  @Router.get("/goals/incomplete/user")
+  @Router.validate(z.object({ author: z.string().optional() }))
+  async getIncompleteUserGoals(author?: string) {
+    if (author) {
+      return await UserGoaling.getIncompleteByAuthor(new ObjectId(author));
+    }
+    return await UserGoaling.getIncompleteGoals();
   }
 
   @Router.post("/collections")
