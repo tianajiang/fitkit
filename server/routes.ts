@@ -163,11 +163,11 @@ class Routes {
   }
 
   @Router.get("/comments")
-  @Router.validate(z.object({ target: z.string().optional() }))
-  async getComments(target?: string) {
+  @Router.validate(z.object({ targetId: z.string().optional() }))
+  async getComments(targetId?: string) {
     let comments;
-    if (target) {
-      const id = new ObjectId(target);
+    if (targetId) {
+      const id = new ObjectId(targetId);
       comments = await Commenting.getByTarget(id);
     } else {
       comments = await Commenting.getComments();
@@ -176,10 +176,10 @@ class Routes {
   }
 
   @Router.post("/comments")
-  async createComment(session: SessionDoc, content: string, target: string) {
+  async createComment(session: SessionDoc, content: string, targetId: string) {
     const user = Sessioning.getUser(session);
-    await Posting.assertPostExists(new ObjectId(target));
-    const created = await Commenting.create(user, content, new ObjectId(target));
+    await Posting.assertPostExists(new ObjectId(targetId));
+    const created = await Commenting.create(user, content, new ObjectId(targetId));
     return { msg: created.msg, comment: await Responses.comment(created.comment) };
   }
 
@@ -230,27 +230,27 @@ class Routes {
   @Router.put("/communities/join/:id")
   async joinCommunity(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);
-    Communitying.assertUserIsNotMember(new ObjectId(id), user);
+    await Communitying.assertUserIsNotMember(new ObjectId(id), user);
     return await Communitying.join(new ObjectId(id), user);
   }
 
   @Router.put("/communities/leave/:id")
   async leaveCommunity(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);
-    Communitying.assertUserIsMember(new ObjectId(id), user);
+    await Communitying.assertUserIsMember(new ObjectId(id), user);
     return await Communitying.leave(new ObjectId(id), user);
   }
 
   @Router.post("/goals/community")
-  async createCommunityGoal(session: SessionDoc, community: string, name: string, unit: string, amount: string, deadline: string) {
+  async createCommunityGoal(session: SessionDoc, communityId: string, name: string, unit: string, amount: string, deadline: string) {
     const user = Sessioning.getUser(session);
     const amt = parseInt(amount);
     if (Number.isNaN(amt)) {
       throw new Error("Amount must be a number!");
     }
     const ddln = new Date(deadline);
-    await Communitying.assertUserIsMember(new ObjectId(community), user);
-    return await CommunityGoaling.create(new ObjectId(community), name, unit, amt, ddln);
+    await Communitying.assertUserIsMember(new ObjectId(communityId), user);
+    return await CommunityGoaling.create(new ObjectId(communityId), name, unit, amt, ddln);
   }
 
   @Router.post("/goals/user")
@@ -325,37 +325,47 @@ class Routes {
   }
 
   @Router.get("/goals/complete/community")
-  @Router.validate(z.object({ community: z.string().optional() }))
-  async getCompleteCommunityGoals(community?: string) {
-    if (community) {
-      return await CommunityGoaling.getCompleteByAuthor(new ObjectId(community));
+  @Router.validate(z.object({ communityId: z.string().optional() }))
+  async getCompleteCommunityGoals(communityId?: string) {
+    if (communityId) {
+      const community = await Communitying.getCommunity(new ObjectId(communityId));
+      if (!community) {
+        throw new Error("Community not found!");
+      }
+      return await CommunityGoaling.getCompleteByAuthor(new ObjectId(communityId));
     }
     return await CommunityGoaling.getCompleteGoals();
   }
 
   @Router.get("/goals/incomplete/community")
-  @Router.validate(z.object({ community: z.string().optional() }))
-  async getIncompleteCommunityGoals(community?: string) {
-    if (community) {
-      return await CommunityGoaling.getIncompleteByAuthor(new ObjectId(community));
+  @Router.validate(z.object({ communityId: z.string().optional() }))
+  async getIncompleteCommunityGoals(communityId?: string) {
+    if (communityId) {
+      const community = await Communitying.getCommunity(new ObjectId(communityId));
+      if (!community) {
+        throw new Error("Community not found!");
+      }
+      return await CommunityGoaling.getIncompleteByAuthor(new ObjectId(communityId));
     }
     return await CommunityGoaling.getIncompleteGoals();
   }
 
   @Router.get("/goals/complete/user")
-  @Router.validate(z.object({ author: z.string().optional() }))
-  async getCompleteUserGoals(author?: string) {
-    if (author) {
-      return await UserGoaling.getCompleteByAuthor(new ObjectId(author));
+  @Router.validate(z.object({ authorId: z.string().optional() }))
+  async getCompleteUserGoals(authorId?: string) {
+    if (authorId) {
+      Authing.assertUserExists(new ObjectId(authorId));
+      return await UserGoaling.getCompleteByAuthor(new ObjectId(authorId));
     }
     return await UserGoaling.getCompleteGoals();
   }
 
   @Router.get("/goals/incomplete/user")
-  @Router.validate(z.object({ author: z.string().optional() }))
-  async getIncompleteUserGoals(author?: string) {
-    if (author) {
-      return await UserGoaling.getIncompleteByAuthor(new ObjectId(author));
+  @Router.validate(z.object({ authorId: z.string().optional() }))
+  async getIncompleteUserGoals(authorId?: string) {
+    if (authorId) {
+      Authing.assertUserExists(new ObjectId(authorId));
+      return await UserGoaling.getIncompleteByAuthor(new ObjectId(authorId));
     }
     return await UserGoaling.getIncompleteGoals();
   }
@@ -372,11 +382,11 @@ class Routes {
   }
 
   @Router.get("/collections")
-  @Router.validate(z.object({ owner: z.string().optional() }))
-  async getCollections(owner?: string) {
+  @Router.validate(z.object({ ownerId: z.string().optional() }))
+  async getCollections(ownerId?: string) {
     let collections;
-    if (owner) {
-      collections = await Collectioning.getCollectionsByUser(new ObjectId(owner));
+    if (ownerId) {
+      collections = await Collectioning.getCollectionsByUser(new ObjectId(ownerId));
     } else {
       collections = await Collectioning.getCollections();
     }
@@ -384,8 +394,8 @@ class Routes {
   }
 
   @Router.get("/collections/user/:id/post/:postId")
-  async getCollectionsByPostAndUser(owner: string, postId: string) {
-    const collections = await Collectioning.getCollectionsByPostAndUser(new ObjectId(owner), new ObjectId(postId));
+  async getCollectionsByPostAndUser(ownerId: string, postId: string) {
+    const collections = await Collectioning.getCollectionsByPostAndUser(new ObjectId(ownerId), new ObjectId(postId));
     return collections;
   }
 

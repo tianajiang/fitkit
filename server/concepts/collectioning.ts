@@ -23,6 +23,9 @@ export default class CollectioningConcept {
   }
 
   async create(name: string, owner: ObjectId|null) {
+    if (!name) {
+      throw new NotAllowedError("Collection name cannot be empty!");
+    }
     const _id = await this.collections.createOne({ name, owner, posts: [] });
     return { msg: "Collection successfully created!", community: await this.collections.readOne({ _id }) };
   }

@@ -84,13 +84,13 @@ const operations: Operation[] = [
     name: "Get Comments (empty for all)",
     endpoint: "/api/comments",
     method: "GET",
-    fields: { target: "input" },
+    fields: { targetId: "input" },
   },
   {
     name: "Create Comment",
     endpoint: "/api/comments",
     method: "POST",
-    fields: { content: "input", target: "input" },
+    fields: { content: "input", targetId: "input" },
   },
   {
     name: "Update Comment",
@@ -150,13 +150,13 @@ const operations: Operation[] = [
     name: "Get Collections (empty for all)",
     endpoint: "/api/collections",
     method: "GET",
-    fields: { owner: "input" },
+    fields: { ownerId: "input" },
   },
   {
     name: "Get Collection by Post and User",
     endpoint: "/api/collections/user/:id/post/:postId",
     method: "GET",
-    fields: { owner: "input", postId: "input" },
+    fields: { ownerId: "input", postId: "input" },
   },
   {
     name: "Add Post to Collection",
@@ -180,30 +180,30 @@ const operations: Operation[] = [
     name: "Get Incomplete Community Goals (empty for all)",
     endpoint: "/api/goals/incomplete/community",
     method: "GET",
-    fields: { community: "input" },
+    fields: { communityId: "input" },
   },
   { name: "Get Complete Community Goals (empty for all)", 
     endpoint: "/api/goals/complete/community", 
     method: "GET", 
-    fields: { community: "input" } 
+    fields: { communityId: "input" } 
   },
   {
     name: "Get Incomplete User Goals (empty for all)",
     endpoint: "/api/goals/incomplete/user",
     method: "GET",
-    fields: { author: "input" },
+    fields: { authorId: "input" },
   },
   {
     name: "Get Complete User Goals (empty for all)",
     endpoint: "/api/goals/complete/user",
     method: "GET",
-    fields: { author: "input" },
+    fields: { authorId: "input" },
   },
   {
-    name: "Create Community Goal",
+    name: "Create Community Goal (deadline should be mm/dd/yyyy)",
     endpoint: "/api/goals/community",
     method: "POST",
-    fields: { community: "input", name: "input", unit: "input", amount: "input", deadline: "input" },
+    fields: { communityId: "input", name: "input", unit: "input", amount: "input", deadline: "input" },
   },
   {
     name: "Create User Goal",

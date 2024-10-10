@@ -24,6 +24,9 @@ export default class CommunityingConcept {
   }
 
   async create(name: string, description: string, creator: ObjectId) {
+    if (!name) {
+      throw new NotAllowedError("Community name cannot be empty!");
+    }
     const _id = await this.communities.createOne({ name, description, members: [creator], posts: [] });
     return { msg: "Community successfully created!", community: await this.communities.readOne({ _id }) };
   }
@@ -86,6 +89,11 @@ export default class CommunityingConcept {
     const community = await this.communities.readOne({ _id });
     if (!community) {
       throw new NotFoundError(`Community ${_id} does not exist!`);
+    }
+    for (const member of community.members) {
+      if (member.toString() === user.toString()) {
+        throw new NotAllowedError(`User ${user} is already a member of community ${_id}!`);
+      }
     }
     community.members.push(user);
     await this.communities.partialUpdateOne({ _id }, community);

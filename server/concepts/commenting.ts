@@ -28,6 +28,9 @@ export default class CommentingConcept {
   }
 
   async create(author: ObjectId, content: string, target: ObjectId) {
+    if (!content) {
+      throw new NotAllowedError("Comment content cannot be empty!");
+    }
     const _id = await this.comments.createOne({ author, content, target });
     return { msg: "Comment successfully created!", comment: await this.comments.readOne({ _id }) };
   }

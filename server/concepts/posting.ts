@@ -27,6 +27,9 @@ export default class PostingConcept {
   }
 
   async create(author: ObjectId, content: string, options?: PostOptions) {
+    if (content.length === 0) {
+      throw new NotAllowedError("Post content cannot be empty!");
+    }
     const _id = await this.posts.createOne({ author, content, options });
     return { msg: "Post successfully created!", post: await this.posts.readOne({ _id }) };
   }
