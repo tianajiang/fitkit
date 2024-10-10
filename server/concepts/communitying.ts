@@ -54,6 +54,14 @@ export default class CommunityingConcept {
     return await this.communities.readOne({ posts: post });
   }
 
+  // return all communities where name or description contains given keyword
+  async searchCommunitiesByKeyword(keyword: string) {
+    const nameCommunities = await this.communities.readMany({ name: { $regex: keyword, $options: "i" } });
+    const descriptionCommunities = await this.communities.readMany({ description: { $regex: keyword, $options: "i" } });
+    const allCommunities = nameCommunities.concat(descriptionCommunities);
+    return allCommunities.filter((community, index, self) => self.findIndex((c) => c._id.toString() === community._id.toString()) === index);
+  }
+
   async addPost(_id: ObjectId, post: ObjectId) {
     const community = await this.communities.readOne({ _id });
     if (!community) {

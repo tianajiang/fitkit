@@ -221,6 +221,12 @@ class Routes {
     return Responses.communities(communities);
   }
 
+  @Router.get("/communities/search")
+  @Router.validate(z.object({ keyword: z.string() }))
+  async searchCommunitiesByKeyword(keyword: string) {
+    return await Responses.communities(await Communitying.searchCommunitiesByKeyword(keyword));
+  }
+
   @Router.put("/communities/join/:id")
   async joinCommunity(session: SessionDoc, id: string) {
     const user = Sessioning.getUser(session);

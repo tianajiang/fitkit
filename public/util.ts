@@ -123,6 +123,12 @@ const operations: Operation[] = [
     fields: { userId: "input" },
   },
   {
+    name: "Search communities by keyword",
+    endpoint: "/api/communities/search",
+    method: "GET",
+    fields: { keyword: "input" },
+  },
+  {
     name: "Join Community",
     endpoint: "/api/communities/join/:id",
     method: "PUT",
